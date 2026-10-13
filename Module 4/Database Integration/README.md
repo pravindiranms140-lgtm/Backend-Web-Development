@@ -16,6 +16,9 @@ Copy `.env.example` to `.env` with a local PostgreSQL URL. The schema is intenti
 ```bash
 npm run prisma:format
 npm run prisma:validate
+npm run prisma:generate
+npm run db:migrate
+npm run db:seed
 ```
 
 Read the platform question before editing. Do not add platform-only `question.md`, answer files, tests, or specs to this repository. Never commit `.env` or real credentials.
