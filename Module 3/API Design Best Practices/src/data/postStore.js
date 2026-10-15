@@ -20,6 +20,14 @@ function getAllPosts() {
   return posts.slice();
 }
 
+function countPosts() {
+  return posts.length;
+}
+
+function getPaginatedPosts(skip = 0, limit = 2) {
+  return posts.slice(skip, skip + limit);
+}
+
 function getPostById(id) {
   return posts.find((post) => post.id === Number(id));
 }
@@ -46,6 +54,8 @@ function incrementLikes(id) {
 module.exports = {
   resetData,
   getAllPosts,
+  countPosts,
+  getPaginatedPosts,
   getPostById,
   createPost,
   incrementLikes
