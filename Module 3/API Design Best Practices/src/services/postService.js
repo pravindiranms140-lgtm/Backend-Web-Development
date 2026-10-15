@@ -1,12 +1,43 @@
 const store = require('../data/postStore');
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 2; // default limit = 2 for exercise
+const MAX_LIMIT = 10;     // server-side cap on client limit
+
 function listPosts(query = {}) {
-  // intentionally poor design: no pagination, no metadata, no contract standardisation
-  return store.getAllPosts();
+  const parsedPage = parseInt(query.page, 10);
+  const page = Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : DEFAULT_PAGE;
+
+  const parsedLimit = parseInt(query.limit, 10);
+  let limit = DEFAULT_LIMIT;
+  if (Number.isInteger(parsedLimit) && parsedLimit > 0) {
+    limit = Math.min(parsedLimit, MAX_LIMIT);
+  }
+
+  const total = store.countPosts();
+  const totalPages = Math.ceil(total / limit);
+  const skip = (page - 1) * limit;
+  const posts = store.getPaginatedPosts(skip, limit);
+
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+
+  return {
+    data: posts,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNextPage,
+      hasPrevPage,
+      hasMore: hasNextPage
+    }
+  };
 }
 
 function getPost(id) {
-  return store.getPostById(id);
+  return store.getPostById(id) || null;
 }
 
 function createPost(body = {}) {
@@ -19,10 +50,7 @@ function createPost(body = {}) {
 function likePost(id) {
   const post = store.incrementLikes(id);
   if (!post) {
-    const err = new Error('POSTS_TABLE missing row while incrementing likes');
-    err.statusCode = 500;
-    err.debug = 'FakeStack: at postService.js:19:11';
-    throw err;
+    return null;
   }
   return post;
 }
@@ -34,6 +62,8 @@ function explode() {
 }
 
 module.exports = {
+  DEFAULT_LIMIT,
+  MAX_LIMIT,
   listPosts,
   getPost,
   createPost,
